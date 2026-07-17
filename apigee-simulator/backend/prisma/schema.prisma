@@ -1,0 +1,369 @@
+// Apigee X Simulator - Prisma Schema
+// SQLite datasource. JSON-shaped data is stored as String and (de)serialized in the app layer
+// for maximum portability across Prisma/SQLite versions.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// AUTH
+// ---------------------------------------------------------------------------
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("orgadmin") // orgadmin | developer_admin | read_only
+  createdAt    DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// ENVIRONMENTS / VHOSTS / ENV GROUPS
+// ---------------------------------------------------------------------------
+model Environment {
+  id          String   @id @default(uuid())
+  name        String   @unique // dev | test | prod
+  displayName String
+  type        String   @default("BASE") // BASE | INTERMEDIATE | COMPREHENSIVE
+  createdAt   DateTime @default(now())
+
+  virtualHosts   VirtualHost[]
+  kvms           Kvm[]
+  deployments    Deployment[]
+  targetServers  TargetServer[]
+  flowHooks      FlowHook[]
+  analyticsEvents AnalyticsEvent[]
+}
+
+model EnvironmentGroup {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  hostnames String // comma separated
+  envNames  String // comma separated environment names
+  createdAt DateTime @default(now())
+}
+
+model VirtualHost {
+  id            String      @id @default(uuid())
+  name          String
+  environment   Environment @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+  environmentId String
+  port          Int         @default(443)
+  hostAliases   String // comma separated
+  sslEnabled    Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// TARGET SERVERS
+// ---------------------------------------------------------------------------
+model TargetServer {
+  id            String       @id @default(uuid())
+  name          String
+  host          String // full URL for simulator simplicity
+  port          Int          @default(443)
+  enabled       Boolean      @default(true)
+  useSSL        Boolean      @default(true)
+  environment   Environment? @relation(fields: [environmentId], references: [id])
+  environmentId String?
+  isFallback    Boolean      @default(false) // used for target failover simulation
+  loadBalancing String? // JSON: { algorithm, servers: [{name, weight}] }
+  createdAt     DateTime     @default(now())
+
+  @@unique([name, environmentId])
+}
+
+// ---------------------------------------------------------------------------
+// API PROXIES
+// ---------------------------------------------------------------------------
+model Proxy {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  basePath    String
+  description String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  revisions   ProxyRevision[]
+  deployments Deployment[]
+  flowHooks   FlowHook[]
+}
+
+model ProxyRevision {
+  id           String   @id @default(uuid())
+  proxy        Proxy    @relation(fields: [proxyId], references: [id], onDelete: Cascade)
+  proxyId      String
+  revision     Int
+  proxyEndpoint   String // JSON: ProxyEndpointDef
+  targetEndpoints String // JSON: TargetEndpointDef[] - a proxy can route to different named
+  // target endpoints for different HTTP methods/paths via ProxyEndpointDef.routeRules
+  resources    String   @default("[]") // JSON array of {name, type, content}
+  openApiSpec  String? // raw imported OpenAPI JSON/YAML text
+  createdAt    DateTime @default(now())
+
+  policies    ProxyPolicy[]
+  deployments Deployment[]
+
+  @@unique([proxyId, revision])
+}
+
+model ProxyPolicy {
+  id              String        @id @default(uuid())
+  revision        ProxyRevision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  revisionId      String
+  name            String
+  type            String // e.g. VerifyAPIKey, SpikeArrest, Quota, AssignMessage, ...
+  category        String // Security | Traffic Management | Mediation | Transformation | Extension
+  config          String // JSON config object (policy-specific fields)
+  xml             String // generated/edited XML
+  enabled         Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// SHARED FLOWS
+// ---------------------------------------------------------------------------
+model SharedFlow {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String   @default("")
+  createdAt   DateTime @default(now())
+
+  revisions SharedFlowRevision[]
+  flowHooks FlowHook[]
+}
+
+model SharedFlowRevision {
+  id           String     @id @default(uuid())
+  sharedFlow   SharedFlow @relation(fields: [sharedFlowId], references: [id], onDelete: Cascade)
+  sharedFlowId String
+  revision     Int
+  steps        String // JSON array of step definitions (sequential policies)
+  createdAt    DateTime   @default(now())
+
+  policies SharedFlowPolicy[]
+
+  @@unique([sharedFlowId, revision])
+}
+
+model SharedFlowPolicy {
+  id         String             @id @default(uuid())
+  revision   SharedFlowRevision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  revisionId String
+  name       String
+  type       String
+  category   String
+  config     String
+  xml        String
+  order      Int                @default(0)
+  createdAt  DateTime           @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// FLOW HOOKS
+// ---------------------------------------------------------------------------
+model FlowHook {
+  id            String       @id @default(uuid())
+  hookPoint     String // PreProxyFlowHook | PostProxyFlowHook | PreTargetFlowHook | PostTargetFlowHook
+  environment   Environment  @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+  environmentId String
+  sharedFlow    SharedFlow?  @relation(fields: [sharedFlowId], references: [id])
+  sharedFlowId  String?
+  proxy         Proxy?       @relation(fields: [proxyId], references: [id])
+  proxyId       String? // null => global (applies to all proxies in env)
+  continueOnError Boolean    @default(true)
+  createdAt     DateTime     @default(now())
+
+  @@unique([hookPoint, environmentId, proxyId])
+}
+
+// ---------------------------------------------------------------------------
+// API PRODUCTS
+// ---------------------------------------------------------------------------
+model ApiProduct {
+  id                String   @id @default(uuid())
+  name              String   @unique
+  displayName       String
+  description       String   @default("")
+  approvalType      String   @default("auto") // auto | manual
+  quotaLimit        Int      @default(1000)
+  quotaInterval      Int     @default(1)
+  quotaTimeUnit     String   @default("hour") // minute|hour|day|month
+  scopes            String   @default("[]") // JSON array of strings
+  environments      String   @default("[]") // JSON array of env names
+  proxies           String   @default("[]") // JSON array of proxy names
+  operations        String  @default("[]") // JSON array of {resource, verbs[]}
+  quotaCountVarName String   @default("")
+  monetizationEnabled Boolean @default(false)
+  ratePlan          String? // JSON: {price, currency, billingPeriod}
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  apps AppProduct[]
+}
+
+// ---------------------------------------------------------------------------
+// DEVELOPERS / APPS
+// ---------------------------------------------------------------------------
+model Developer {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  firstName String
+  lastName  String
+  userName  String
+  company   String   @default("")
+  status    String   @default("active") // active | inactive
+  createdAt DateTime @default(now())
+
+  apps DeveloperApp[]
+}
+
+model DeveloperApp {
+  id             String   @id @default(uuid())
+  name           String
+  developer      Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  developerId    String
+  status         String   @default("approved") // approved | pending | revoked
+  callbackUrl    String   @default("")
+  consumerKey    String   @unique
+  consumerSecret String
+  createdAt      DateTime @default(now())
+
+  products AppProduct[]
+
+  @@unique([name, developerId])
+}
+
+model AppProduct {
+  id             String       @id @default(uuid())
+  app            DeveloperApp @relation(fields: [appId], references: [id], onDelete: Cascade)
+  appId          String
+  product        ApiProduct   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId      String
+  status         String       @default("approved")
+
+  @@unique([appId, productId])
+}
+
+// ---------------------------------------------------------------------------
+// KVM
+// ---------------------------------------------------------------------------
+model Kvm {
+  id            String       @id @default(uuid())
+  name          String
+  scope         String // organization | environment
+  environment   Environment? @relation(fields: [environmentId], references: [id])
+  environmentId String?
+  encrypted     Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+
+  entries KvmEntry[]
+
+  @@unique([name, scope, environmentId])
+}
+
+model KvmEntry {
+  id        String   @id @default(uuid())
+  kvm       Kvm      @relation(fields: [kvmId], references: [id], onDelete: Cascade)
+  kvmId     String
+  key       String
+  value     String
+  createdAt DateTime @default(now())
+
+  @@unique([kvmId, key])
+}
+
+// ---------------------------------------------------------------------------
+// REFERENCES (keystore/truststore/JWKS style references used by policies)
+// ---------------------------------------------------------------------------
+model Reference {
+  id            String   @id @default(uuid())
+  name          String   @unique
+  refers        String // name of resource it refers to (e.g. keystore name)
+  resourceType  String   @default("KeyStore") // KeyStore | TrustStore | JWKS
+  jwksJson      String? // for JWKS references: raw JSON keyset
+  createdAt     DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// DEPLOYMENTS
+// ---------------------------------------------------------------------------
+model Deployment {
+  id            String        @id @default(uuid())
+  proxy         Proxy         @relation(fields: [proxyId], references: [id], onDelete: Cascade)
+  proxyId       String
+  revision      ProxyRevision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  revisionId    String
+  environment   Environment   @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+  environmentId String
+  status        String        @default("deployed") // deployed | undeployed | failed
+  deployedAt    DateTime      @default(now())
+  undeployedAt  DateTime?
+}
+
+// ---------------------------------------------------------------------------
+// TRACE SESSIONS
+// ---------------------------------------------------------------------------
+model TraceSession {
+  id            String   @id @default(uuid())
+  proxyId       String
+  proxyName     String
+  environmentId String
+  environmentName String
+  request       String // JSON: {method, path, headers, body, query}
+  response      String // JSON: {status, headers, body}
+  timeline      String // JSON array of step results
+  variables     String // JSON object of flow variables collected
+  success       Boolean  @default(true)
+  durationMs    Int      @default(0)
+  createdAt     DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// ANALYTICS / MONITORING
+// ---------------------------------------------------------------------------
+model AnalyticsEvent {
+  id            String      @id @default(uuid())
+  proxyName     String
+  environment   Environment @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+  environmentId String
+  timestamp     DateTime
+  statusCode    Int
+  latencyMs     Int
+  verb          String      @default("GET")
+  clientIp      String      @default("203.0.113.1")
+  errorFlag     Boolean     @default(false)
+}
+
+model MonitoringAlert {
+  id        String   @id @default(uuid())
+  proxyName String
+  severity  String // info | warning | critical
+  message   String
+  metric    String // availability | latency | error_rate | traffic
+  value     Float
+  threshold Float
+  createdAt DateTime @default(now())
+  resolved  Boolean  @default(false)
+}
+
+// OAuthV2 access tokens issued by the GenerateAccessToken operation, persisted so they
+// survive backend restarts (ts-node-dev --respawn restarts the process on every file
+// save, which would otherwise wipe an in-memory token store and break VerifyAccessToken
+// with a false "invalid token" 401 immediately after any edit).
+model IssuedToken {
+  id             String   @id @default(uuid())
+  token          String   @unique
+  clientId       String
+  developerAppId String
+  scope          String
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+}

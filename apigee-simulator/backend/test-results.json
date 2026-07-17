@@ -1,0 +1,1410 @@
+{
+  "generatedAt": "2026-07-17T03:20:41.315Z",
+  "passCount": 42,
+  "failCount": 0,
+  "total": 42,
+  "records": [
+    {
+      "section": "VerifyAPIKey",
+      "name": "Valid API key (header) -> success",
+      "policyType": "VerifyAPIKey",
+      "config": {
+        "apiKeyLocation": "header",
+        "apiKeyParam": "x-api-key"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {
+          "x-api-key": "test-client-id"
+        },
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "success",
+        "message": "API key verified for app \"Test App\"",
+        "variablesSet": {
+          "verifyapikey.client_id": "test-client-id",
+          "verifyapikey.developer.app.name": "Test App",
+          "verifyapikey.developer.email": "dev@example.com",
+          "verifyapikey.apiproduct.names": ""
+        },
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "VerifyAPIKey",
+      "name": "Missing API key -> 401",
+      "policyType": "VerifyAPIKey",
+      "config": {
+        "apiKeyLocation": "header",
+        "apiKeyParam": "x-api-key"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {},
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "error",
+        "message": "API key not found in request",
+        "variablesSet": null,
+        "faultResponse": {
+          "status": 401,
+          "reasonPhrase": "Unauthorized",
+          "body": {
+            "fault": {
+              "faultstring": "Failed to resolve API Key variable request.x-api-key",
+              "detail": {
+                "errorcode": "steps.oauth.v2.FailedToResolveAPIKey"
+              }
+            }
+          }
+        }
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "VerifyAPIKey",
+      "name": "Invalid API key -> 401",
+      "policyType": "VerifyAPIKey",
+      "config": {
+        "apiKeyLocation": "header",
+        "apiKeyParam": "x-api-key"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {
+          "x-api-key": "not-a-real-key"
+        },
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "error",
+        "message": "Invalid API key: not-a-real-key",
+        "variablesSet": null,
+        "faultResponse": {
+          "status": 401,
+          "reasonPhrase": "Unauthorized",
+          "body": {
+            "fault": {
+              "faultstring": "Invalid API Key",
+              "detail": {
+                "errorcode": "oauth.v2.InvalidApiKey"
+              }
+            }
+          }
+        }
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "OAuthV2",
+      "name": "GenerateAccessToken with valid client credentials -> success",
+      "policyType": "OAuthV2",
+      "config": {
+        "operation": "GenerateAccessToken",
+        "grantType": "client_credentials",
+        "scopes": "read"
+      },
+      "request": {
+        "method": "POST",
+        "path": "/oauth/token",
+        "headers": {},
+        "query": {},
+        "body": {
+          "client_id": "test-client-id",
+          "client_secret": "test-client-secret"
+        }
+      },
+      "result": {
+        "status": "success",
+        "message": "Access token issued for app \"Test App\" (grant_type=client_credentials)",
+        "variablesSet": {
+          "oauthv2.access_token": "sim_at_u43fgwso4oqlrko6",
+          "oauthv2.client_id": "test-client-id",
+          "oauthv2.developer.app.name": "Test App"
+        },
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "access_token": "sim_at_u43fgwso4oqlrko6",
+          "token_type": "Bearer",
+          "expires_in": 3600,
+          "scope": "read"
+        }
+      },
+      "pass": true
+    },
+    {
+      "section": "OAuthV2",
+      "name": "GenerateAccessToken response contains access_token",
+      "policyType": "OAuthV2",
+      "config": {
+        "operation": "GenerateAccessToken"
+      },
+      "request": {
+        "method": "POST",
+        "path": "/oauth/token",
+        "headers": {},
+        "query": {},
+        "body": {
+          "client_id": "test-client-id",
+          "client_secret": "test-client-secret"
+        }
+      },
+      "result": {
+        "status": "success",
+        "message": "Access token issued for app \"Test App\" (grant_type=client_credentials)",
+        "variablesSet": {
+          "oauthv2.access_token": "sim_at_d0gpaunycxoixgeq",
+          "oauthv2.client_id": "test-client-id",
+          "oauthv2.developer.app.name": "Test App"
+        },
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "access_token": "sim_at_d0gpaunycxoixgeq",
+          "token_type": "Bearer",
+          "expires_in": 3600,
+          "scope": ""
+        }
+      },
+      "pass": true
+    },
+    {
+      "section": "OAuthV2",
+      "name": "GenerateAccessToken with wrong secret -> 401",
+      "policyType": "OAuthV2",
+      "config": {
+        "operation": "GenerateAccessToken"
+      },
+      "request": {
+        "method": "POST",
+        "path": "/oauth/token",
+        "headers": {},
+        "query": {},
+        "body": {
+          "client_id": "test-client-id",
+          "client_secret": "WRONG"
+        }
+      },
+      "result": {
+        "status": "error",
+        "message": "Invalid client credentials for client_id test-client-id",
+        "variablesSet": null,
+        "faultResponse": {
+          "status": 401,
+          "reasonPhrase": "Unauthorized",
+          "body": {
+            "error": "invalid_client",
+            "error_description": "Client authentication failed"
+          }
+        }
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "OAuthV2",
+      "name": "VerifyAccessToken with just-issued token (Header location) -> success",
+      "policyType": "OAuthV2",
+      "config": {
+        "operation": "VerifyAccessToken",
+        "accessTokenLocation": "Header",
+        "accessTokenHeaderName": "Authorization"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {
+          "authorization": "Bearer sim_at_u43fgwso4oqlrko6"
+        },
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "success",
+        "message": "Access token verified (client_id test-client-id)",
+        "variablesSet": {
+          "oauthv2.client_id": "test-client-id",
+          "oauthv2.scope": "read"
+        },
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "OAuthV2",
+      "name": "VerifyAccessToken with token in query param (new feature) -> success",
+      "policyType": "OAuthV2",
+      "config": {
+        "operation": "VerifyAccessToken",
+        "accessTokenLocation": "Query Parameter",
+        "accessTokenQueryParam": "access_token"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/secure",
+        "headers": {},
+        "query": {
+          "access_token": "sim_at_u43fgwso4oqlrko6"
+        },
+        "body": null
+      },
+      "result": {
+        "status": "success",
+        "message": "Access token verified (client_id test-client-id)",
+        "variablesSet": {
+          "oauthv2.client_id": "test-client-id",
+          "oauthv2.scope": "read"
+        },
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "OAuthV2",
+      "name": "VerifyAccessToken with no token -> 401 missing",
+      "policyType": "OAuthV2",
+      "config": {
+        "operation": "VerifyAccessToken",
+        "accessTokenLocation": "Header",
+        "accessTokenHeaderName": "Authorization"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {},
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "error",
+        "message": "Missing access token - expected it in the header \"Authorization\"",
+        "variablesSet": null,
+        "faultResponse": {
+          "status": 401,
+          "reasonPhrase": "Unauthorized",
+          "body": {
+            "fault": {
+              "faultstring": "Invalid Access Token",
+              "detail": {
+                "errorcode": "keymanagement.service.invalid_access_token"
+              }
+            }
+          }
+        }
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "OAuthV2",
+      "name": "VerifyAccessToken with bogus token -> 401 invalid",
+      "policyType": "OAuthV2",
+      "config": {
+        "operation": "VerifyAccessToken"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {
+          "authorization": "Bearer not-a-real-token"
+        },
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "error",
+        "message": "Access token is invalid or was never issued by this simulator",
+        "variablesSet": null,
+        "faultResponse": {
+          "status": 401,
+          "reasonPhrase": "Unauthorized",
+          "body": {
+            "fault": {
+              "faultstring": "Invalid Access Token",
+              "detail": {
+                "errorcode": "keymanagement.service.invalid_access_token"
+              }
+            }
+          }
+        }
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "Header Case-Insensitivity Fix",
+      "name": "\"Authorization\" (capital, as typed in Trace UI) normalizes to lowercase \"authorization\" key",
+      "policyType": "traceEngine.ts ingestion",
+      "config": {},
+      "request": {
+        "rawHeaders": {
+          "Authorization": "Bearer some-token-value"
+        }
+      },
+      "result": {
+        "status": "success",
+        "message": "normalized = {\"authorization\":\"Bearer some-token-value\"}",
+        "variablesSet": null,
+        "faultResponse": null
+      },
+      "responseAfter": null,
+      "pass": true
+    },
+    {
+      "section": "VerifyJWT",
+      "name": "Valid JWT (issuer/audience/algorithm/expiry all match) -> success",
+      "policyType": "VerifyJWT",
+      "config": {
+        "algorithm": "RS256",
+        "issuer": "https://accounts.example.com",
+        "audience": "my-api"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {
+          "authorization": "Bearer eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmV4YW1wbGUuY29tIiwiYXVkIjoibXktYXBpIiwiZXhwIjoxNzg0MjYyMDQxfQ.fakesignature"
+        },
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "success",
+        "message": "JWT verified (algorithm, expiry, issuer, and audience all checked)",
+        "variablesSet": {
+          "jwt.decoded.header": {
+            "alg": "RS256"
+          },
+          "jwt.decoded.claims": {
+            "iss": "https://accounts.example.com",
+            "aud": "my-api",
+            "exp": 1784262041
+          }
+        },
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "VerifyJWT",
+      "name": "Expired JWT -> 401",
+      "policyType": "VerifyJWT",
+      "config": {
+        "issuer": "https://accounts.example.com",
+        "audience": "my-api"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {
+          "authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmV4YW1wbGUuY29tIiwiYXVkIjoibXktYXBpIiwiZXhwIjoxNzg0MjU4MzQxfQ.fakesignature"
+        },
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "error",
+        "message": "JWT has expired",
+        "variablesSet": null,
+        "faultResponse": {
+          "status": 401,
+          "reasonPhrase": "Unauthorized",
+          "body": {
+            "fault": {
+              "faultstring": "JWT has expired",
+              "detail": {
+                "errorcode": "steps.jwt.TokenExpired"
+              }
+            }
+          }
+        }
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "VerifyJWT",
+      "name": "Wrong issuer -> 401",
+      "policyType": "VerifyJWT",
+      "config": {
+        "issuer": "https://accounts.example.com",
+        "audience": "my-api"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {
+          "authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2V2aWwuZXhhbXBsZS5jb20iLCJhdWQiOiJteS1hcGkiLCJleHAiOjE3ODQyNjIwNDF9.fakesignature"
+        },
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "error",
+        "message": "JWT issuer mismatch: token issuer is \"https://evil.example.com\", policy expects \"https://accounts.example.com\"",
+        "variablesSet": null,
+        "faultResponse": {
+          "status": 401,
+          "reasonPhrase": "Unauthorized",
+          "body": {
+            "fault": {
+              "faultstring": "JWT issuer is invalid",
+              "detail": {
+                "errorcode": "steps.jwt.InvalidIssuer"
+              }
+            }
+          }
+        }
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "VerifyJWT",
+      "name": "Algorithm mismatch -> 401",
+      "policyType": "VerifyJWT",
+      "config": {
+        "algorithm": "RS256",
+        "issuer": "https://accounts.example.com",
+        "audience": "my-api"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmV4YW1wbGUuY29tIiwiYXVkIjoibXktYXBpIiwiZXhwIjoxNzg0MjYyMDQxfQ.fakesignature"
+        },
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "error",
+        "message": "JWT algorithm mismatch: token uses \"HS256\", policy expects \"RS256\"",
+        "variablesSet": null,
+        "faultResponse": {
+          "status": 401,
+          "reasonPhrase": "Unauthorized",
+          "body": {
+            "fault": {
+              "faultstring": "JWT algorithm mismatch",
+              "detail": {
+                "errorcode": "steps.jwt.AlgorithmMismatch"
+              }
+            }
+          }
+        }
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "VerifyJWT",
+      "name": "Malformed JWT -> 401",
+      "policyType": "VerifyJWT",
+      "config": {},
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {
+          "authorization": "Bearer not.a.validjwt.at.all"
+        },
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "error",
+        "message": "JWT is malformed (expected 3 segments)",
+        "variablesSet": null,
+        "faultResponse": {
+          "status": 401,
+          "reasonPhrase": "Unauthorized",
+          "body": {
+            "fault": {
+              "faultstring": "JWT is not valid",
+              "detail": {
+                "errorcode": "steps.jwt.InvalidToken"
+              }
+            }
+          }
+        }
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "BasicAuthentication",
+      "name": "Decode valid Basic header -> success",
+      "policyType": "BasicAuthentication",
+      "config": {
+        "operation": "Decode",
+        "user": "req.user",
+        "password": "req.pass"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {
+          "authorization": "Basic YWxpY2U6czNjcmV0"
+        },
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "success",
+        "message": "Basic auth decoded",
+        "variablesSet": {
+          "req.user": "alice",
+          "req.pass": "****"
+        },
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "BasicAuthentication",
+      "name": "Decode with no Basic header -> 401",
+      "policyType": "BasicAuthentication",
+      "config": {
+        "operation": "Decode",
+        "user": "req.user",
+        "password": "req.pass"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {},
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "error",
+        "message": "Missing Basic Authorization header",
+        "variablesSet": null,
+        "faultResponse": {
+          "status": 401,
+          "reasonPhrase": "Unauthorized",
+          "body": {
+            "fault": {
+              "faultstring": "Invalid basic authentication header"
+            }
+          }
+        }
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "BasicAuthentication",
+      "name": "Encode sets lowercase authorization header on the request",
+      "policyType": "BasicAuthentication",
+      "config": {
+        "operation": "Encode",
+        "user": "myuser",
+        "password": "mypass"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {},
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "success",
+        "message": "Basic auth header encoded and set on the request (user: bob)",
+        "variablesSet": {
+          "basicauthentication.header": "Basic Ym9iOmh1bnRlcjI="
+        },
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "CORS",
+      "name": "CORS sets Access-Control-Allow-Origin on response",
+      "policyType": "CORS",
+      "config": {
+        "allowOrigins": "*",
+        "allowMethods": "GET,POST",
+        "allowHeaders": "Content-Type"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {},
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "success",
+        "message": "CORS headers applied to response",
+        "variablesSet": null,
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET,POST",
+          "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "AccessControl",
+      "name": "AccessControl DENY matching client IP -> 403",
+      "policyType": "AccessControl",
+      "config": {
+        "action": "DENY",
+        "ipList": "203.0.113.1"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {},
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "error",
+        "message": "Client IP 203.0.113.1 is denied by AccessControl",
+        "variablesSet": null,
+        "faultResponse": {
+          "status": 403,
+          "reasonPhrase": "Forbidden",
+          "body": {
+            "fault": {
+              "faultstring": "Access Denied"
+            }
+          }
+        }
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "AccessControl",
+      "name": "AccessControl DENY non-matching client IP -> success",
+      "policyType": "AccessControl",
+      "config": {
+        "action": "DENY",
+        "ipList": "10.0.0.1"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {},
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "success",
+        "message": "Client IP 203.0.113.1 passed AccessControl",
+        "variablesSet": null,
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "SpikeArrest",
+      "name": "5 rapid calls at rate 3ps -> 4th/5th call blocked (429)",
+      "policyType": "SpikeArrest",
+      "config": {
+        "rate": "3ps"
+      },
+      "request": {
+        "note": "5 sequential calls, same key, within 1 second"
+      },
+      "result": {
+        "status": "error",
+        "message": "Spike arrest violation (5/3 in window)",
+        "variablesSet": null,
+        "faultResponse": {
+          "status": 429,
+          "reasonPhrase": "Too Many Requests",
+          "body": {
+            "fault": {
+              "faultstring": "Spike arrest violation",
+              "detail": {
+                "errorcode": "policies.ratelimit.SpikeArrestViolation"
+              }
+            }
+          }
+        }
+      },
+      "responseAfter": null,
+      "pass": true
+    },
+    {
+      "section": "Quota",
+      "name": "4 calls with allowCount=3 -> 4th call blocked (429)",
+      "policyType": "Quota",
+      "config": {
+        "allowCount": 3,
+        "interval": 1,
+        "timeUnit": "hour"
+      },
+      "request": {
+        "note": "4 sequential calls, same key"
+      },
+      "result": {
+        "status": "error",
+        "message": "Quota exceeded (4/3)",
+        "variablesSet": null,
+        "faultResponse": {
+          "status": 429,
+          "reasonPhrase": "Too Many Requests",
+          "body": {
+            "fault": {
+              "faultstring": "Quota Violation",
+              "detail": {
+                "errorcode": "policies.ratelimit.QuotaViolation"
+              }
+            }
+          }
+        }
+      },
+      "responseAfter": null,
+      "pass": true
+    },
+    {
+      "section": "ResponseCache / PopulateCache / LookupCache",
+      "name": "PopulateCache then LookupCache round-trips the cached value",
+      "policyType": "PopulateCache + LookupCache",
+      "config": {
+        "cacheResource": "res1",
+        "cacheKey": "k1",
+        "ttlSeconds": 60
+      },
+      "request": {
+        "populate": {
+          "hello": "world"
+        },
+        "lookupPath": "/x"
+      },
+      "result": {
+        "status": "success",
+        "message": "Cache hit",
+        "variablesSet": {
+          "cached.value": {
+            "hello": "world"
+          }
+        },
+        "faultResponse": null
+      },
+      "responseAfter": null,
+      "pass": true
+    },
+    {
+      "section": "AssignMessage",
+      "name": "AssignMessage stores header keys lowercase (X-Client, Authorization)",
+      "policyType": "AssignMessage",
+      "config": {
+        "assignTo": "request",
+        "setHeaders": "X-Client: test-harness\\nAuthorization: Bearer injected-token"
+      },
+      "request": {},
+      "result": {
+        "status": "success",
+        "message": "Assigned headers/payload to request",
+        "variablesSet": null,
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "headers": {
+          "x-client": "test-harness",
+          "authorization": "Bearer injected-token"
+        }
+      },
+      "pass": true
+    },
+    {
+      "section": "ExtractVariables",
+      "name": "Extracts nested JSON path ($.user.id) into a flow variable",
+      "policyType": "ExtractVariables",
+      "config": {
+        "source": "request",
+        "jsonPath": "$.user.id",
+        "variableName": "user.id"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {},
+        "query": {},
+        "body": {
+          "user": {
+            "id": 42
+          }
+        }
+      },
+      "result": {
+        "status": "success",
+        "message": "Extracted \"$.user.id\" -> user.id",
+        "variablesSet": {
+          "user.id": 42
+        },
+        "faultResponse": null
+      },
+      "responseAfter": null,
+      "pass": true
+    },
+    {
+      "section": "RaiseFault",
+      "name": "Raises the configured status/reason/body",
+      "policyType": "RaiseFault",
+      "config": {
+        "statusCode": 503,
+        "reasonPhrase": "Service Unavailable",
+        "errorMessage": "{\"error\":\"maintenance\"}"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {},
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "error",
+        "message": "Fault raised: 503 Service Unavailable",
+        "variablesSet": null,
+        "faultResponse": {
+          "status": 503,
+          "reasonPhrase": "Service Unavailable",
+          "body": {
+            "error": "maintenance"
+          }
+        }
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "JSONToXML",
+      "name": "Converts request body from JSON object to XML string",
+      "policyType": "JSONToXML",
+      "config": {
+        "source": "request"
+      },
+      "request": {
+        "body": {
+          "a": 1
+        }
+      },
+      "result": {
+        "status": "success",
+        "message": "Converted request body from JSON to XML",
+        "variablesSet": null,
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root><a>1</a></root>"
+      },
+      "pass": true
+    },
+    {
+      "section": "XMLToJSON",
+      "name": "Converts response body from XML string to a JSON object",
+      "policyType": "XMLToJSON",
+      "config": {
+        "source": "response"
+      },
+      "request": {
+        "body": "<root><a>1</a></root>"
+      },
+      "result": {
+        "status": "success",
+        "message": "Converted response body from XML to JSON",
+        "variablesSet": null,
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "body": {
+          "root": {
+            "a": "1"
+          }
+        }
+      },
+      "pass": true
+    },
+    {
+      "section": "JavaScript",
+      "name": "Sandboxed JS executes and sets a flow variable",
+      "policyType": "JavaScript",
+      "config": {
+        "source": "context.setVariable(\"my.var\", 1 + 2);"
+      },
+      "request": {},
+      "result": {
+        "status": "success",
+        "message": "JavaScript executed",
+        "variablesSet": {
+          "my.var": 3
+        },
+        "faultResponse": null
+      },
+      "responseAfter": null,
+      "pass": true
+    },
+    {
+      "section": "Route Rules (multi-method target routing)",
+      "name": "GET /items -> routed to \"read-target\"",
+      "policyType": "Route Rule evaluation",
+      "config": {
+        "routeRules": [
+          {
+            "name": "reads",
+            "targetEndpoint": "read-target",
+            "condition": {
+              "verb": "GET"
+            }
+          },
+          {
+            "name": "writes",
+            "targetEndpoint": "write-target"
+          }
+        ]
+      },
+      "request": {
+        "method": "GET",
+        "path": "/items"
+      },
+      "result": {
+        "status": "success",
+        "message": "resolved target endpoint = \"read-target\"",
+        "variablesSet": null,
+        "faultResponse": null
+      },
+      "responseAfter": null,
+      "pass": true
+    },
+    {
+      "section": "Route Rules (multi-method target routing)",
+      "name": "POST /items -> routed to \"write-target\"",
+      "policyType": "Route Rule evaluation",
+      "config": {
+        "routeRules": [
+          {
+            "name": "reads",
+            "targetEndpoint": "read-target",
+            "condition": {
+              "verb": "GET"
+            }
+          },
+          {
+            "name": "writes",
+            "targetEndpoint": "write-target"
+          }
+        ]
+      },
+      "request": {
+        "method": "POST",
+        "path": "/items"
+      },
+      "result": {
+        "status": "success",
+        "message": "resolved target endpoint = \"write-target\"",
+        "variablesSet": null,
+        "faultResponse": null
+      },
+      "responseAfter": null,
+      "pass": true
+    },
+    {
+      "section": "Route Rules (multi-method target routing)",
+      "name": "DELETE /items -> routed to \"write-target\"",
+      "policyType": "Route Rule evaluation",
+      "config": {
+        "routeRules": [
+          {
+            "name": "reads",
+            "targetEndpoint": "read-target",
+            "condition": {
+              "verb": "GET"
+            }
+          },
+          {
+            "name": "writes",
+            "targetEndpoint": "write-target"
+          }
+        ]
+      },
+      "request": {
+        "method": "DELETE",
+        "path": "/items"
+      },
+      "result": {
+        "status": "success",
+        "message": "resolved target endpoint = \"write-target\"",
+        "variablesSet": null,
+        "faultResponse": null
+      },
+      "responseAfter": null,
+      "pass": true
+    },
+    {
+      "section": "Route Rules (multi-method target routing)",
+      "name": "Verb match is case-insensitive; basePathSuffix requires substring match",
+      "policyType": "matchesFlowCondition",
+      "config": {},
+      "request": {},
+      "result": {
+        "status": "success",
+        "message": "condMatch=true, condNoMatch=true",
+        "variablesSet": null,
+        "faultResponse": null
+      },
+      "responseAfter": null,
+      "pass": true
+    },
+    {
+      "section": "Connector Stubs (simulated)",
+      "name": "ConcurrentRateLimit executes without throwing",
+      "policyType": "ConcurrentRateLimit",
+      "config": {
+        "maxConcurrency": 10
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {},
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "success",
+        "message": "Concurrency simulated within limit of 10",
+        "variablesSet": null,
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "Connector Stubs (simulated)",
+      "name": "FlowCallout executes without throwing",
+      "policyType": "FlowCallout",
+      "config": {
+        "sharedFlowName": "Common-Security-Flow"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {},
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "success",
+        "message": "Shared flow \"Common-Security-Flow\" invoked (see nested steps)",
+        "variablesSet": null,
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "Connector Stubs (simulated)",
+      "name": "XSLTransform executes without throwing",
+      "policyType": "XSLTransform",
+      "config": {
+        "resourceName": "transform.xsl",
+        "source": "request"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {},
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "success",
+        "message": "XSL stylesheet \"transform.xsl\" applied to request (simulated passthrough)",
+        "variablesSet": null,
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "Connector Stubs (simulated)",
+      "name": "SalesforceConnector executes without throwing",
+      "policyType": "SalesforceConnector",
+      "config": {
+        "operation": "Create",
+        "sobject": "Account"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {},
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "success",
+        "message": "Salesforce Create on Account simulated",
+        "variablesSet": {
+          "connector.salesforce.result": {
+            "id": "SFd47dpex4",
+            "success": true
+          }
+        },
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "Connector Stubs (simulated)",
+      "name": "BigQueryConnector executes without throwing",
+      "policyType": "BigQueryConnector",
+      "config": {
+        "projectId": "my-project"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {},
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "success",
+        "message": "BigQuery query executed against my-project (simulated)",
+        "variablesSet": {
+          "connector.bigquery.rows": [
+            {
+              "id": 1,
+              "value": "sample"
+            },
+            {
+              "id": 2,
+              "value": "sample2"
+            }
+          ]
+        },
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "Connector Stubs (simulated)",
+      "name": "CloudStorageConnector executes without throwing",
+      "policyType": "CloudStorageConnector",
+      "config": {
+        "operation": "Upload",
+        "bucket": "my-bucket",
+        "objectName": "file.json"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {},
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "success",
+        "message": "Cloud Storage Upload on gs://my-bucket/file.json simulated",
+        "variablesSet": null,
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    },
+    {
+      "section": "Connector Stubs (simulated)",
+      "name": "PubSubConnector executes without throwing",
+      "policyType": "PubSubConnector",
+      "config": {
+        "operation": "Publish",
+        "topic": "my-topic"
+      },
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {},
+        "query": {},
+        "body": null
+      },
+      "result": {
+        "status": "success",
+        "message": "Pub/Sub Publish on topic \"my-topic\" simulated",
+        "variablesSet": {
+          "connector.pubsub.messageId": "cd8nhf7b1e"
+        },
+        "faultResponse": null
+      },
+      "responseAfter": {
+        "status": 200,
+        "reasonPhrase": "OK",
+        "headers": {},
+        "body": null
+      },
+      "pass": true
+    }
+  ]
+}
