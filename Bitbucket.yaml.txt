@@ -1,0 +1,100 @@
+image: maven:3.9.6-eclipse-temurin-17
+
+definitions:
+  caches:
+    sonar: ~/.sonar/cache
+
+pipelines:
+
+  branches:
+
+    develop:
+      - step:
+          name: Checkout & ApigeeLint
+          image: node:18
+          caches:
+            - node
+          script:
+            - npm install -g apigeelint
+            - apigeelint -s apiproxy -f table.js
+
+      - step:
+          name: SonarQube Analysis
+          caches:
+            - sonar
+          script:
+            - mvn sonar:sonar
+              -Dsonar.projectKey=customer-api
+              -Dsonar.host.url=$SONAR_HOST
+              -Dsonar.login=$SONAR_TOKEN
+
+      - step:
+          name: Build Proxy Bundle
+          script:
+            - zip -r customer-api.zip apiproxy/
+          artifacts:
+            - customer-api.zip
+
+      - step:
+          name: Deploy DEV
+          script:
+            - mvn clean install
+            - mvn apigee-enterprise:deploy \
+                -Pdev \
+                -Dapigee.org=$APIGEE_ORG \
+                -Dapigee.env=dev
+
+      - step:
+          name: Integration Test
+          image: postman/newman
+          script:
+            - newman run tests/customer-api.postman_collection.json
+
+
+    release/*:
+      - step:
+          name: Deploy QA
+          script:
+            - mvn apigee-enterprise:deploy \
+                -Pqa \
+                -Dapigee.org=$APIGEE_ORG \
+                -Dapigee.env=qa
+
+      - step:
+          name: Regression Testing
+          image: postman/newman
+          script:
+            - newman run tests/regression_suite.json
+
+
+    main:
+      - step:
+          name: Deploy Stage
+          script:
+            - mvn apigee-enterprise:deploy \
+                -Pstage \
+                -Dapigee.org=$APIGEE_ORG \
+                -Dapigee.env=stage
+
+      - step:
+          name: Performance Test
+          script:
+            - ./performance/k6-run.sh
+
+      - step:
+          trigger: manual
+          name: Production Approval
+
+      - step:
+          name: Deploy PROD
+          script:
+            - mvn apigee-enterprise:deploy \
+                -Pprod \
+                -Dapigee.org=$APIGEE_ORG \
+                -Dapigee.env=prod
+
+      - step:
+          name: Smoke Test
+          image: postman/newman
+          script:
+            - newman run tests/smoke_test.json
